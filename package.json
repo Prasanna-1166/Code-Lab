@@ -1,0 +1,17 @@
+{
+  "name": "lab-code-library",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Browse, copy and download lab exam programs. Netlify Functions + Netlify Blobs.",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "netlify dev",
+    "test": "node --test tests/api.test.mjs tests/frontend.test.mjs",
+    "check": "node --check netlify/functions/api.mjs && node --check public/js/shared.js && node --check public/js/app.js && node --check public/js/admin.js && node --check public/js/theme.js",
+    "build": "npm run check"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^8.2.0"
+  }
+}
