@@ -6,21 +6,21 @@
   <title>Lab Code Library</title>
   <meta name="description" content="Search, review, copy, and download verified source code for lab exam experiments.">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <script src="/js/theme.js"></script>
-  <link rel="stylesheet" href="/css/styles.css">
+  <script src="/js/theme.js?v=4"></script>
+  <link rel="stylesheet" href="/css/styles.css?v=4">
 </head>
 <body>
   <header class="site-header">
     <div class="header-brand">
       <div class="brand-icon" aria-hidden="true">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="16 18 22 12 16 6"></polyline>
           <polyline points="8 6 2 12 8 18"></polyline>
         </svg>
       </div>
       <div class="brand-title">
         <h1>Lab Code Library</h1>
-        <p>Lab exam programs — search, review, copy, and download.</p>
+        <p>Curated lab exam programs &mdash; search, review, copy, and download.</p>
       </div>
     </div>
     <div class="header-actions">
@@ -40,22 +40,51 @@
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
-              <input id="search" type="search" placeholder="Experiment #, title, keyword or syntax..." autocomplete="off">
+              <input id="search" type="search" placeholder="Search by experiment #, title, or syntax..." autocomplete="off">
+              <span class="search-shortcut-pill" aria-hidden="true">/</span>
               <button type="button" id="search-clear" class="search-clear-btn" aria-label="Clear search" title="Clear">✕</button>
             </div>
           </div>
           <div class="control-field">
             <label for="subject">Lab subject</label>
-            <select id="subject"><option value="">All subjects</option></select>
+            <div class="select-wrap">
+              <select id="subject">
+                <option value="">All subjects</option>
+                <option value="Data Structures">Data Structures</option>
+                <option value="Database Management">Database Management</option>
+                <option value="Mobile App Development">Mobile App Development</option>
+                <option value="Object-Oriented Programming">Object-Oriented Programming</option>
+                <option value="Python Programming">Python Programming</option>
+                <option value="Web Technologies">Web Technologies</option>
+              </select>
+            </div>
           </div>
           <div class="control-field">
             <label for="language">Language</label>
-            <select id="language"><option value="">All languages</option></select>
+            <div class="select-wrap">
+              <select id="language">
+                <option value="">All languages</option>
+                <option value="c">C</option>
+                <option value="cpp">C++</option>
+                <option value="java">Java</option>
+                <option value="python">Python</option>
+                <option value="dart">Dart</option>
+                <option value="javascript">JavaScript</option>
+                <option value="sql">SQL</option>
+                <option value="html">HTML</option>
+                <option value="css">CSS</option>
+                <option value="text">Plain text</option>
+              </select>
+            </div>
           </div>
         </div>
-        <div class="controls-meta">
-          <span id="result-status">Loading experiments...</span>
-          <p class="sr-only" id="result-count" role="status" aria-live="polite"></p>
+
+        <div class="filter-row">
+          <div id="quick-tags" class="quick-tags"></div>
+          <div class="controls-meta">
+            <span id="result-status">6 experiments</span>
+            <p class="sr-only" id="result-count" role="status" aria-live="polite"></p>
+          </div>
         </div>
       </div>
     </div>
@@ -67,10 +96,10 @@
   </main>
 
   <footer class="site-footer">
-    <div>Lab Code Library &bull; Curated exam programs</div>
-    <div><a href="/admin">Administrator &amp; local management &rarr;</a></div>
+    <div><strong>Lab Code Library</strong> &bull; Production developer utility</div>
+    <div><a href="/admin">Manage programs &rarr;</a></div>
   </footer>
 
-  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/app.js?v=4"></script>
 </body>
 </html>

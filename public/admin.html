@@ -6,8 +6,8 @@
   <meta name="robots" content="noindex, nofollow">
   <title>Manage Programs | Lab Code Library</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <script src="/js/theme.js"></script>
-  <link rel="stylesheet" href="/css/styles.css">
+  <script src="/js/theme.js?v=4"></script>
+  <link rel="stylesheet" href="/css/styles.css?v=4">
 </head>
 <body>
   <header class="site-header">
@@ -81,7 +81,19 @@
             </div>
             <div class="span-2">
               <label for="f-language">Language</label>
-              <select id="f-language" name="language" required></select>
+              <select id="f-language" name="language" required>
+                <option value="">Choose a language</option>
+                <option value="c">C (.c)</option>
+                <option value="cpp">C++ (.cpp)</option>
+                <option value="java">Java (.java)</option>
+                <option value="python">Python (.py)</option>
+                <option value="dart">Dart (.dart)</option>
+                <option value="javascript">JavaScript (.js)</option>
+                <option value="sql">SQL (.sql)</option>
+                <option value="html">HTML (.html)</option>
+                <option value="css">CSS (.css)</option>
+                <option value="text">Plain text (.txt)</option>
+              </select>
               <p class="field-error" id="e-language" hidden></p>
             </div>
             <div class="span-6">
@@ -140,6 +152,6 @@
     <div><a href="/">&larr; Return to library</a></div>
   </footer>
 
-  <script type="module" src="/js/admin.js"></script>
+  <script type="module" src="/js/admin.js?v=4"></script>
 </body>
 </html>

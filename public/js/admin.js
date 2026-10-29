@@ -6,7 +6,20 @@ const $ = (id) => document.getElementById(id);
 const TOKEN_KEY = "lcl-admin-token";
 const FIELDS = ["subject", "experimentNumber", "title", "language", "description", "code"];
 
-const state = { token: null, programs: [], languages: [], limits: { maxCodeBytes: 512000 }, editing: null, isStaticMode: false };
+const ALL_LANGUAGES = [
+  { id: "c", label: "C", ext: "c" },
+  { id: "cpp", label: "C++", ext: "cpp" },
+  { id: "java", label: "Java", ext: "java" },
+  { id: "python", label: "Python", ext: "py" },
+  { id: "dart", label: "Dart", ext: "dart" },
+  { id: "javascript", label: "JavaScript", ext: "js" },
+  { id: "sql", label: "SQL", ext: "sql" },
+  { id: "html", label: "HTML", ext: "html" },
+  { id: "css", label: "CSS", ext: "css" },
+  { id: "text", label: "Plain text", ext: "txt" },
+];
+
+const state = { token: null, programs: [], languages: [...ALL_LANGUAGES], limits: { maxCodeBytes: 512000 }, editing: null, isStaticMode: false };
 
 try {
   state.token = sessionStorage.getItem(TOKEN_KEY);
