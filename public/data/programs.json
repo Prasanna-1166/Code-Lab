@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "programs": [
+    {
+      "id": "sample-ds-1",
+      "subject": "Data Structures",
+      "experimentNumber": 1,
+      "title": "Stack using an array",
+      "language": "c",
+      "description": "Push, pop and display on a fixed-size stack.",
+      "code": "#include <stdio.h>\n#define MAX 5\n\nint stack[MAX];\nint top = -1;\n\nvoid push(int value) {\n    if (top == MAX - 1) {\n        printf(\"Stack overflow\\n\");\n        return;\n    }\n    stack[++top] = value;\n}\n\nint pop(void) {\n    if (top == -1) {\n        printf(\"Stack underflow\\n\");\n        return -1;\n    }\n    return stack[top--];\n}\n\nint main(void) {\n    push(10);\n    push(20);\n    push(30);\n    printf(\"Popped: %d\\n\", pop());\n    printf(\"Popped: %d\\n\", pop());\n    return 0;\n}\n",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "sample-py-1",
+      "subject": "Python Programming",
+      "experimentNumber": 1,
+      "title": "Binary search",
+      "language": "python",
+      "description": "Search a sorted list in O(log n) steps.",
+      "code": "def binary_search(items, target):\n    low, high = 0, len(items) - 1\n    while low <= high:\n        mid = (low + high) // 2\n        if items[mid] == target:\n            return mid\n        if items[mid] < target:\n            low = mid + 1\n        else:\n            high = mid - 1\n    return -1\n\n\nnumbers = [3, 8, 15, 23, 42, 57, 91]\nprint(\"Index of 23:\", binary_search(numbers, 23))\nprint(\"Index of 10:\", binary_search(numbers, 10))\n",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "sample-db-1",
+      "subject": "Database Management",
+      "experimentNumber": 1,
+      "title": "Create tables and join them",
+      "language": "sql",
+      "description": "Two related tables and an INNER JOIN.",
+      "code": "-- Students and the department each one belongs to\nCREATE TABLE department (\n    dept_id   INT PRIMARY KEY,\n    dept_name VARCHAR(50) NOT NULL\n);\n\nCREATE TABLE student (\n    roll_no INT PRIMARY KEY,\n    name    VARCHAR(80) NOT NULL,\n    dept_id INT,\n    FOREIGN KEY (dept_id) REFERENCES department(dept_id)\n);\n\nINSERT INTO department VALUES (1, 'Computer Science'), (2, 'Electronics');\nINSERT INTO student VALUES (101, 'Asha', 1), (102, 'Ravi', 2);\n\nSELECT s.roll_no, s.name, d.dept_name\nFROM student s\nINNER JOIN department d ON s.dept_id = d.dept_id\nORDER BY s.roll_no;\n",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "sample-oop-1",
+      "subject": "Object-Oriented Programming",
+      "experimentNumber": 1,
+      "title": "Inheritance and method overriding",
+      "language": "java",
+      "description": "A Dog class that extends Animal and overrides speak().",
+      "code": "class Animal {\n    void speak() {\n        System.out.println(\"The animal makes a sound\");\n    }\n}\n\nclass Dog extends Animal {\n    @Override\n    void speak() {\n        System.out.println(\"The dog barks\");\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Animal pet = new Dog();\n        pet.speak();\n    }\n}\n",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "sample-mad-1",
+      "subject": "Mobile App Development",
+      "experimentNumber": 1,
+      "title": "Counter app",
+      "language": "dart",
+      "description": "A Flutter screen with a button that increments a counter.",
+      "code": "import 'package:flutter/material.dart';\n\nvoid main() => runApp(const CounterApp());\n\nclass CounterApp extends StatefulWidget {\n  const CounterApp({super.key});\n\n  @override\n  State<CounterApp> createState() => _CounterAppState();\n}\n\nclass _CounterAppState extends State<CounterApp> {\n  int _count = 0;\n\n  @override\n  Widget build(BuildContext context) {\n    return MaterialApp(\n      home: Scaffold(\n        appBar: AppBar(title: const Text('Counter')),\n        body: Center(child: Text('Count: $_count')),\n        floatingActionButton: FloatingActionButton(\n          onPressed: () => setState(() => _count++),\n          child: const Icon(Icons.add),\n        ),\n      ),\n    );\n  }\n}\n",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "sample-web-1",
+      "subject": "Web Technologies",
+      "experimentNumber": 1,
+      "title": "Form validation",
+      "language": "html",
+      "description": "Check that a name and an email are filled in before submitting.",
+      "code": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <title>Form validation</title>\n</head>\n<body>\n  <form id=\"signup\">\n    <input id=\"name\" placeholder=\"Name\">\n    <input id=\"email\" placeholder=\"Email\">\n    <button type=\"submit\">Register</button>\n    <p id=\"message\"></p>\n  </form>\n\n  <script>\n    document.getElementById(\"signup\").addEventListener(\"submit\", function (event) {\n      event.preventDefault();\n      var name = document.getElementById(\"name\").value.trim();\n      var email = document.getElementById(\"email\").value.trim();\n      var message = document.getElementById(\"message\");\n      if (name === \"\" || email.indexOf(\"@\") === -1) {\n        message.textContent = \"Enter a name and a valid email.\";\n      } else {\n        message.textContent = \"Welcome, \" + name + \"!\";\n      }\n    });\n  </script>\n</body>\n</html>\n",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    }
+  ]
+}

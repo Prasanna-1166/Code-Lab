@@ -1,12 +1,12 @@
 // Admin page: sign in, add / edit / delete programs.
 // The server re-checks everything; hiding this page's buttons is not the security.
-import { ApiError, api, el, setupThemeToggle } from "./shared.js";
+import { ApiError, api, downloadText, el, setupThemeToggle } from "./shared.js";
 
 const $ = (id) => document.getElementById(id);
 const TOKEN_KEY = "lcl-admin-token";
 const FIELDS = ["subject", "experimentNumber", "title", "language", "description", "code"];
 
-const state = { token: null, programs: [], languages: [], limits: { maxCodeBytes: 512000 }, editing: null };
+const state = { token: null, programs: [], languages: [], limits: { maxCodeBytes: 512000 }, editing: null, isStaticMode: false };
 
 try {
   state.token = sessionStorage.getItem(TOKEN_KEY);
@@ -106,18 +106,13 @@ function fillSelects() {
     ...state.languages.map((l) => el("option", { value: l.id, text: `${l.label} (.${l.ext})` })),
   );
   select.value = current;
-  $("file-hint").textContent = `Allowed: ${state.languages.map((l) => "." + l.ext).join(", ")}. Up to ${Math.round(state.limits.maxCodeBytes / 1024)} KB. The code will load below for your review.`;
+  $("file-hint").textContent = `Allowed: ${state.languages.map((l) => "." + l.ext).join(", ")}. Up to ${Math.round(state.limits.maxCodeBytes / 1024)} KB. Text loads below for review.`;
   const subjects = [...new Set(state.programs.map((p) => p.subject))].sort((a, b) => a.localeCompare(b));
   $("subject-list").replaceChildren(...subjects.map((s) => el("option", { value: s })));
 }
 
 function renderExisting() {
   const box = $("existing");
-  const countBadge = $("existing-count");
-  if (countBadge) {
-    countBadge.textContent = `${state.programs.length} ${state.programs.length === 1 ? "Program" : "Programs"}`;
-  }
-
   if (state.programs.length === 0) {
     box.replaceChildren(el("p", { class: "hint", text: "No programs yet. Add the first one above." }));
     return;
@@ -187,15 +182,56 @@ function startEdit(p) {
   $("save-btn").textContent = "Save changes";
   $("cancel-edit").hidden = false;
   updateCodeSize();
-  $("form-title").scrollIntoView({ block: "start", behavior: "smooth" });
+  $("form-title").scrollIntoView({ block: "start" });
   $("f-title").focus();
 }
 
+function saveLocalPrograms(programs) {
+  state.programs = programs;
+  try {
+    localStorage.setItem("lcl-custom-programs", JSON.stringify(programs));
+  } catch {}
+  fillSelects();
+  renderExisting();
+}
+
 async function loadPrograms() {
-  const data = await api("/programs");
-  state.programs = data.programs;
-  state.languages = data.languages;
-  state.limits = data.limits;
+  try {
+    const data = await api("/programs");
+    state.programs = data.programs;
+    state.languages = data.languages;
+    state.limits = data.limits;
+    state.isStaticMode = false;
+  } catch (err) {
+    // Fallback to static data/programs.json
+    try {
+      const res = await fetch("/data/programs.json");
+      if (!res.ok) throw new Error("Could not load data.");
+      const data = await res.json();
+      let programs = data.programs || [];
+      try {
+        const local = localStorage.getItem("lcl-custom-programs");
+        if (local) programs = JSON.parse(local);
+      } catch {}
+      state.programs = programs;
+      state.isStaticMode = true;
+      state.languages = [
+        { id: "c", label: "C", ext: "c" },
+        { id: "cpp", label: "C++", ext: "cpp" },
+        { id: "java", label: "Java", ext: "java" },
+        { id: "python", label: "Python", ext: "py" },
+        { id: "dart", label: "Dart", ext: "dart" },
+        { id: "javascript", label: "JavaScript", ext: "js" },
+        { id: "sql", label: "SQL", ext: "sql" },
+        { id: "html", label: "HTML", ext: "html" },
+        { id: "css", label: "CSS", ext: "css" },
+        { id: "text", label: "Plain text", ext: "txt" },
+      ];
+      state.limits = { maxCodeBytes: 512000 };
+    } catch {
+      throw err;
+    }
+  }
   fillSelects();
   renderExisting();
   updateCodeSize();
@@ -226,7 +262,6 @@ async function onFile(event) {
   if (!$("f-language").value) $("f-language").value = language.id;
   if (!$("f-title").value) $("f-title").value = file.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ");
 
-  // Auto-detect experiment number from filename if available (e.g. exp1 or lab-2)
   if (!$("f-experimentNumber").value) {
     const numMatch = file.name.match(/(?:exp|experiment|lab)[\s_-]*(\d+)/i);
     if (numMatch) $("f-experimentNumber").value = numMatch[1];
@@ -251,11 +286,60 @@ async function onSave(event) {
   const editing = state.editing;
   if (editing) body.expectedUpdatedAt = editing.updatedAt;
   $("save-btn").disabled = true;
+
   try {
-    const result = await api(editing ? `/programs/${editing.id}` : "/programs", { method: editing ? "PUT" : "POST", body, token: state.token });
-    await loadPrograms();
-    resetForm();
-    notice($("form-notice"), "ok", `${editing ? "Saved changes to" : "Added"} ${result.program.subject}, Experiment ${result.program.experimentNumber}: ${result.program.title}.`);
+    if (!state.isStaticMode && state.token) {
+      const result = await api(editing ? `/programs/${editing.id}` : "/programs", { method: editing ? "PUT" : "POST", body, token: state.token });
+      await loadPrograms();
+      resetForm();
+      notice($("form-notice"), "ok", `${editing ? "Saved changes to" : "Added"} ${result.program.subject}, Experiment ${result.program.experimentNumber}: ${result.program.title}.`);
+    } else {
+      // Local storage fallback for static deployments
+      const expNum = Number(body.experimentNumber);
+      if (!body.title.trim()) {
+        showFieldErrors({ title: "Title is required." });
+        return;
+      }
+      if (!body.subject.trim()) {
+        showFieldErrors({ subject: "Subject is required." });
+        return;
+      }
+      if (!body.language) {
+        showFieldErrors({ language: "Select a language." });
+        return;
+      }
+      if (!body.code.trim()) {
+        showFieldErrors({ code: "Source code is required." });
+        return;
+      }
+      const existingClash = state.programs.find((p) => (!editing || p.id !== editing.id) && p.subject.toLowerCase() === body.subject.trim().toLowerCase() && p.experimentNumber === expNum);
+      if (existingClash) {
+        showFieldErrors({ experimentNumber: "This number is already used in this subject." });
+        notice($("form-notice"), "error", "Duplicate experiment number.");
+        return;
+      }
+      const now = new Date().toISOString();
+      const updatedProg = {
+        id: editing ? editing.id : `prog-${Date.now()}`,
+        subject: body.subject.trim(),
+        experimentNumber: expNum,
+        title: body.title.trim(),
+        language: body.language,
+        description: (body.description || "").trim(),
+        code: body.code,
+        createdAt: editing ? editing.createdAt : now,
+        updatedAt: now,
+      };
+      let nextPrograms;
+      if (editing) {
+        nextPrograms = state.programs.map((p) => (p.id === editing.id ? updatedProg : p));
+      } else {
+        nextPrograms = [...state.programs, updatedProg];
+      }
+      saveLocalPrograms(nextPrograms);
+      resetForm();
+      notice($("form-notice"), "ok", `${editing ? "Saved changes to" : "Added"} ${updatedProg.subject}, Experiment ${updatedProg.experimentNumber}: ${updatedProg.title}.`);
+    }
   } catch (err) {
     if (handleAuth(err)) return;
     showFieldErrors(err.fields);
@@ -274,9 +358,15 @@ function confirmDelete(p) {
     dialog.removeEventListener("close", onClose);
     if (dialog.returnValue !== "delete") return;
     try {
-      await api(`/programs/${p.id}`, { method: "DELETE", token: state.token });
-      if (state.editing?.id === p.id) resetForm();
-      await loadPrograms();
+      if (!state.isStaticMode && state.token) {
+        await api(`/programs/${p.id}`, { method: "DELETE", token: state.token });
+        if (state.editing?.id === p.id) resetForm();
+        await loadPrograms();
+      } else {
+        const next = state.programs.filter((x) => x.id !== p.id);
+        if (state.editing?.id === p.id) resetForm();
+        saveLocalPrograms(next);
+      }
       notice($("form-notice"), "ok", `Deleted ${p.subject}, Experiment ${p.experimentNumber}.`);
     } catch (err) {
       if (handleAuth(err)) return;
@@ -303,6 +393,46 @@ async function onLogin(event) {
   }
 }
 
+function setupExportImport() {
+  const exportBtn = $("export-json-btn");
+  if (exportBtn) {
+    exportBtn.addEventListener("click", () => {
+      const jsonContent = JSON.stringify({ version: 1, programs: state.programs }, null, 2);
+      downloadText("lab-programs-export.json", jsonContent);
+    });
+  }
+
+  const importFile = $("import-json-file");
+  if (importFile) {
+    importFile.addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        const content = await file.text();
+        const parsed = JSON.parse(content);
+        if (!parsed || !Array.isArray(parsed.programs)) {
+          alert("Invalid JSON format: missing 'programs' array.");
+          return;
+        }
+        if (confirm(`Import ${parsed.programs.length} programs from this file? This will merge with your current library.`)) {
+          const map = new Map(state.programs.map((p) => [p.id, p]));
+          for (const item of parsed.programs) {
+            if (item.id && item.subject && item.experimentNumber && item.title && item.code) {
+              map.set(item.id, item);
+            }
+          }
+          saveLocalPrograms([...map.values()]);
+          notice($("form-notice"), "ok", `Successfully imported ${parsed.programs.length} programs.`);
+        }
+      } catch (err) {
+        alert("Failed to parse JSON file: " + err.message);
+      } finally {
+        e.target.value = "";
+      }
+    });
+  }
+}
+
 async function init() {
   setupThemeToggle($("theme-toggle"));
   $("login-form").addEventListener("submit", onLogin);
@@ -325,11 +455,18 @@ async function init() {
 
   $("cancel-edit").addEventListener("click", resetForm);
   $("logout").addEventListener("click", () => showLogin(""));
+  setupExportImport();
 
   try {
     await loadPrograms();
   } catch (err) {
     notice($("form-notice"), "error", err.message);
+  }
+
+  // If in static mode or no backend configured, show admin view directly
+  if (state.isStaticMode) {
+    showAdmin();
+    return;
   }
 
   if (!state.token) return showLogin("");
