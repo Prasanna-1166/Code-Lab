@@ -470,14 +470,33 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
+function trackVisit(experimentId = null) {
+  try {
+    api("/track", {
+      method: "POST",
+      body: {
+        path: location.pathname + (location.hash || ""),
+        experimentId: experimentId || state.selectedId || null,
+      },
+    }).catch(() => {});
+  } catch {
+    /* ignore telemetry */
+  }
+}
+
 window.addEventListener("hashchange", () => {
   readHash();
   render();
-  if (state.selectedId) $("viewer-pane").scrollIntoView({ block: "start" });
+  if (state.selectedId) {
+    trackVisit(state.selectedId);
+    $("viewer-pane").scrollIntoView({ block: "start" });
+  }
 });
 
 // Immediate first render with default state so nothing is empty
 fillFilters();
 readHash();
 render();
-load();
+load().then(() => {
+  trackVisit(state.selectedId);
+});

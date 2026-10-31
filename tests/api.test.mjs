@@ -63,6 +63,7 @@ test("mutations without a token are rejected with 401", async () => {
   assert.equal((await call("PUT", "/api/programs/sample-ds-1", { body: program() })).status, 401);
   assert.equal((await call("DELETE", "/api/programs/sample-ds-1")).status, 401);
   assert.equal((await call("GET", "/api/session")).status, 401);
+  assert.equal((await call("GET", "/api/analytics")).status, 401);
 });
 
 test("invalid, tampered and expired tokens are rejected", async () => {
@@ -201,4 +202,26 @@ test("unknown routes 404 and wrong methods 405", async () => {
   assert.equal((await call("GET", "/api/nothing")).status, 404);
   assert.equal((await call("PATCH", "/api/programs")).status, 405);
   assert.equal((await call("GET", "/api/login")).status, 405);
+  assert.equal((await call("POST", "/api/analytics")).status, 405);
+  assert.equal((await call("GET", "/api/track")).status, 405);
+});
+
+test("analytics tracking records visits and admin can retrieve analytics dashboard metrics", async () => {
+  const { call, login } = setup();
+  assert.equal((await call("GET", "/api/analytics")).status, 401);
+  const trackRes1 = await call("POST", "/api/track", { body: { path: "/", experimentId: null }, ip: "10.0.0.1" });
+  assert.equal(trackRes1.status, 200);
+  const trackRes2 = await call("POST", "/api/track", { body: { path: "/#/p/sample-ds-1", experimentId: "sample-ds-1" }, ip: "10.0.0.2" });
+  assert.equal(trackRes2.status, 200);
+
+  const token = await login();
+  const analyticsRes = await call("GET", "/api/analytics", { token });
+  assert.equal(analyticsRes.status, 200);
+  const data = await analyticsRes.json();
+  assert.equal(data.totalVisits, 2);
+  assert.equal(data.uniqueVisitors, 2);
+  assert.ok(data.timeline.length === 14);
+  assert.ok(data.topPrograms.some((p) => p.id === "sample-ds-1" && p.views >= 1));
+  assert.ok(data.totalPrograms >= 5);
+  assert.ok(data.totalSubjects >= 3);
 });

@@ -4,23 +4,23 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>Manage Programs | Lab Code Library</title>
+  <title>Admin Dashboard | Lab Code Library</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <script src="/js/theme.js?v=4"></script>
-  <link rel="stylesheet" href="/css/styles.css?v=4">
+  <script src="/js/theme.js?v=5"></script>
+  <link rel="stylesheet" href="/css/styles.css?v=5">
 </head>
 <body>
   <header class="site-header">
     <div class="header-brand">
       <div class="brand-icon" aria-hidden="true">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 20h9"></path>
-          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
         </svg>
       </div>
       <div class="brand-title">
-        <h1>Manage Programs</h1>
-        <p><a href="/">&larr; Back to the public library</a></p>
+        <h1>Lab Library Admin</h1>
+        <p><a href="/">&larr; Return to public student portal</a></p>
       </div>
     </div>
     <div class="header-actions">
@@ -30,112 +30,306 @@
   </header>
 
   <main>
-    <section class="card login-card" id="login-view" hidden>
-      <h2>Admin sign in</h2>
+    <!-- 1. Secure Admin Login Wall -->
+    <section class="card login-card" id="login-view">
+      <div style="text-align: center; margin-bottom: 1.25rem;">
+        <div class="brand-icon" style="margin: 0 auto 0.75rem auto;" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <h2>Admin Authentication</h2>
+        <p class="hint">Only administrators can add, edit, or remove lab code and view visitor analytics.</p>
+      </div>
+
       <p class="notice" id="login-notice" hidden></p>
       <form id="login-form" autocomplete="off">
-        <label for="password">Admin password</label>
-        <input id="password" type="password" autocomplete="current-password" placeholder="Enter administrator password" required>
-        <p class="hint">Sessions last one hour.</p>
-        <div class="form-actions" style="margin-top: 1rem;">
-          <button class="btn btn-primary" style="width: 100%;" id="login-btn" type="submit">Sign in</button>
+        <label for="password">Administrator Password</label>
+        <input id="password" type="password" autocomplete="current-password" placeholder="Enter master admin password" required>
+        <p class="hint">Sessions are cryptographically verified and expire after 1 hour.</p>
+        <div class="form-actions" style="margin-top: 1.25rem;">
+          <button class="btn btn-primary" style="width: 100%;" id="login-btn" type="submit">Unlock Admin Console</button>
         </div>
       </form>
     </section>
 
+    <!-- 2. Authenticated Admin Console (Dashboard & Program Management) -->
     <div class="admin-wrap" id="admin-view" hidden>
-      <div class="storage-notice" id="storage-notice" role="status">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="8" x2="12" y2="12"></line>
-          <line x1="12" y1="16" x2="12.01" y2="16"></line>
-        </svg>
-        <span><strong>Storage note:</strong> Verified changes persist across deployments via Netlify Blobs. In static mode, changes persist in your browser's local storage. Use <strong>Export JSON</strong> to backup.</span>
-      </div>
-
-      <section class="card">
-        <div class="card-header">
-          <h2 id="form-title">Add a program</h2>
-          <span class="hint" id="code-size">0 KB of 500 KB used</span>
+      <!-- Admin Navigation Tabs -->
+      <nav class="admin-tab-nav" aria-label="Admin Navigation">
+        <div class="tab-list" role="tablist">
+          <button type="button" class="admin-tab-btn active" id="tab-btn-analytics" role="tab" aria-selected="true" aria-controls="panel-analytics">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+            Analytics Dashboard
+          </button>
+          <button type="button" class="admin-tab-btn" id="tab-btn-programs" role="tab" aria-selected="false" aria-controls="panel-programs">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+            Manage Programs
+          </button>
         </div>
-        <p class="notice" id="form-notice" hidden role="status"></p>
-        <form id="program-form" novalidate>
-          <div class="form-grid">
-            <div class="span-3">
-              <label for="f-subject">Lab subject</label>
-              <input id="f-subject" name="subject" list="subject-list" maxlength="60" placeholder="e.g. Data Structures" autocomplete="off" required>
-              <datalist id="subject-list"></datalist>
-              <p class="hint">Pick an existing subject or type a new one.</p>
-              <p class="field-error" id="e-subject" hidden></p>
+
+        <div>
+          <button type="button" class="btn btn-small" id="refresh-analytics-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="23 4 23 10 17 10"></polyline>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+            </svg>
+            Refresh Data
+          </button>
+        </div>
+      </nav>
+
+      <!-- Panel 1: Analytics Dashboard -->
+      <section id="panel-analytics" role="tabpanel" aria-labelledby="tab-btn-analytics">
+        <div class="dashboard-header">
+          <div class="dashboard-title">
+            <h2>Visitor Traffic &amp; Engagement</h2>
+            <p>Live metrics showing how many people visit the website and view lab programs.</p>
+          </div>
+        </div>
+
+        <!-- KPI Stat Grid -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-top">
+              <span class="kpi-label">Total Visits</span>
+              <div class="kpi-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </div>
             </div>
-            <div class="span-3">
-              <label for="f-experimentNumber">Experiment number</label>
-              <input id="f-experimentNumber" name="experimentNumber" type="number" min="1" max="9999" step="1" placeholder="e.g. 1" required>
-              <p class="hint">Unique within this subject.</p>
-              <p class="field-error" id="e-experimentNumber" hidden></p>
+            <div class="kpi-val" id="kpi-total-views">0</div>
+            <div class="kpi-meta">All-time page views</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-top">
+              <span class="kpi-label">Unique Visitors</span>
+              <div class="kpi-icon icon-green" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+              </div>
             </div>
-            <div class="span-4">
-              <label for="f-title">Title</label>
-              <input id="f-title" name="title" maxlength="120" placeholder="e.g. Stack implementation using an array" required>
-              <p class="field-error" id="e-title" hidden></p>
+            <div class="kpi-val" id="kpi-unique-visitors">0</div>
+            <div class="kpi-meta">Distinct student devices</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-top">
+              <span class="kpi-label">Today's Visits</span>
+              <div class="kpi-icon icon-amber" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+              </div>
             </div>
-            <div class="span-2">
-              <label for="f-language">Language</label>
-              <select id="f-language" name="language" required>
-                <option value="">Choose a language</option>
-                <option value="c">C (.c)</option>
-                <option value="cpp">C++ (.cpp)</option>
-                <option value="java">Java (.java)</option>
-                <option value="python">Python (.py)</option>
-                <option value="dart">Dart (.dart)</option>
-                <option value="javascript">JavaScript (.js)</option>
-                <option value="sql">SQL (.sql)</option>
-                <option value="html">HTML (.html)</option>
-                <option value="css">CSS (.css)</option>
-                <option value="text">Plain text (.txt)</option>
-              </select>
-              <p class="field-error" id="e-language" hidden></p>
+            <div class="kpi-val" id="kpi-today-views">0</div>
+            <div class="kpi-meta" id="kpi-today-uniques">0 unique today</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-top">
+              <span class="kpi-label">Lab Programs</span>
+              <div class="kpi-icon icon-purple" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="16 18 22 12 16 6"></polyline>
+                  <polyline points="8 6 2 12 8 18"></polyline>
+                </svg>
+              </div>
             </div>
-            <div class="span-6">
-              <label for="f-description">Description (optional)</label>
-              <input id="f-description" name="description" maxlength="300" placeholder="Brief algorithm summary or experiment objective">
-              <p class="field-error" id="e-description" hidden></p>
-            </div>
-            <div class="span-6">
-              <label for="f-file">Upload a source file (optional)</label>
-              <input id="f-file" type="file">
-              <p class="hint" id="file-hint"></p>
-              <p class="field-error" id="e-file" hidden></p>
-            </div>
-            <div class="span-6">
-              <label for="f-code">Source code</label>
-              <textarea id="f-code" name="code" rows="14" spellcheck="false" wrap="off" placeholder="// Paste or type program source code here..." required></textarea>
-              <p class="field-error" id="e-code" hidden></p>
+            <div class="kpi-val" id="kpi-total-programs">0</div>
+            <div class="kpi-meta" id="kpi-total-subjects">0 subjects covered</div>
+          </div>
+        </div>
+
+        <!-- 14-Day Timeline Bar Chart Card -->
+        <section class="card chart-card">
+          <div class="chart-header">
+            <h3>Daily Traffic Trend (Last 14 Days)</h3>
+            <div class="chart-legend">
+              <div class="legend-item"><span class="legend-dot"></span> Daily Visits</div>
             </div>
           </div>
-          <div class="form-actions form-actions-top">
-            <button class="btn btn-primary" id="save-btn" type="submit">Save program</button>
-            <button class="btn" id="cancel-edit" type="button" hidden>Cancel editing</button>
+          <div class="chart-bars-wrap" id="chart-bars-container" role="img" aria-label="14-day traffic trend bar chart">
+            <!-- Rendered dynamically by admin.js -->
           </div>
-        </form>
+        </section>
+
+        <!-- Two Column Breakdown -->
+        <div class="analytics-grid-two">
+          <!-- Column 1: Most Viewed Experiments -->
+          <section class="card">
+            <div class="card-header">
+              <h3>Top Viewed Lab Programs</h3>
+              <span class="hint" id="top-progs-count">Ranked by visits</span>
+            </div>
+            <div style="overflow-x: auto;">
+              <table class="analytics-table">
+                <thead>
+                  <tr>
+                    <th style="width: 2.2rem;">#</th>
+                    <th>Experiment</th>
+                    <th style="width: 5rem;">Lang</th>
+                    <th style="width: 7rem; text-align: right;">Views</th>
+                  </tr>
+                </thead>
+                <tbody id="top-programs-table-body">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Column 2: Device Breakdown & Quick Insights -->
+          <section class="card">
+            <div class="card-header">
+              <h3>Visitor Environment</h3>
+              <span class="hint">Device platforms</span>
+            </div>
+            <div class="breakdown-list" id="device-breakdown-list">
+              <!-- Rendered dynamically -->
+            </div>
+          </section>
+        </div>
+
+        <!-- Recent Activity Feed -->
+        <section class="card">
+          <div class="card-header">
+            <h3>Recent Visitor Activity</h3>
+            <span class="hint">Live access stream</span>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="analytics-table">
+              <thead>
+                <tr>
+                  <th style="width: 10rem;">Time</th>
+                  <th>Page / Experiment</th>
+                  <th style="width: 6rem;">Device</th>
+                </tr>
+              </thead>
+              <tbody id="recent-activity-table-body">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </section>
       </section>
 
-      <section class="card" aria-labelledby="existing-title">
-        <div class="card-header">
-          <h2 id="existing-title">Existing programs</h2>
-          <div class="form-actions">
-            <button type="button" class="btn btn-small" id="export-json-btn" title="Download all programs as JSON">Export JSON</button>
-            <label class="btn btn-small" style="margin-bottom: 0; cursor: pointer;" title="Import programs from JSON">
-              Import JSON
-              <input type="file" id="import-json-file" accept=".json,application/json" style="display: none;">
-            </label>
-          </div>
+      <!-- Panel 2: Program Management (Add, Edit, Remove codes) -->
+      <section id="panel-programs" role="tabpanel" aria-labelledby="tab-btn-programs" hidden>
+        <div class="storage-notice" id="storage-notice" role="status">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span><strong>Administrator Notice:</strong> Changes made here are saved directly to the master repository. Only authenticated administrators have permissions to publish or delete experiments.</span>
         </div>
-        <div id="existing"></div>
+
+        <!-- Add / Edit Form Card -->
+        <section class="card">
+          <div class="card-header">
+            <h2 id="form-title">Add a program</h2>
+            <span class="hint" id="code-size">0 KB of 500 KB used</span>
+          </div>
+          <p class="notice" id="form-notice" hidden role="status"></p>
+          <form id="program-form" novalidate>
+            <div class="form-grid">
+              <div class="span-3">
+                <label for="f-subject">Lab subject</label>
+                <input id="f-subject" name="subject" list="subject-list" maxlength="60" placeholder="e.g. Data Structures" autocomplete="off" required>
+                <datalist id="subject-list"></datalist>
+                <p class="hint">Select an existing subject or type a new one.</p>
+                <p class="field-error" id="e-subject" hidden></p>
+              </div>
+              <div class="span-3">
+                <label for="f-experimentNumber">Experiment number</label>
+                <input id="f-experimentNumber" name="experimentNumber" type="number" min="1" max="9999" step="1" placeholder="e.g. 1" required>
+                <p class="hint">Unique within this subject.</p>
+                <p class="field-error" id="e-experimentNumber" hidden></p>
+              </div>
+              <div class="span-4">
+                <label for="f-title">Title</label>
+                <input id="f-title" name="title" maxlength="120" placeholder="e.g. Stack implementation using an array" required>
+                <p class="field-error" id="e-title" hidden></p>
+              </div>
+              <div class="span-2">
+                <label for="f-language">Language</label>
+                <select id="f-language" name="language" required>
+                  <option value="">Choose a language</option>
+                  <option value="c">C (.c)</option>
+                  <option value="cpp">C++ (.cpp)</option>
+                  <option value="java">Java (.java)</option>
+                  <option value="python">Python (.py)</option>
+                  <option value="dart">Dart (.dart)</option>
+                  <option value="javascript">JavaScript (.js)</option>
+                  <option value="sql">SQL (.sql)</option>
+                  <option value="html">HTML (.html)</option>
+                  <option value="css">CSS (.css)</option>
+                  <option value="text">Plain text (.txt)</option>
+                </select>
+                <p class="field-error" id="e-language" hidden></p>
+              </div>
+              <div class="span-6">
+                <label for="f-description">Description (optional)</label>
+                <input id="f-description" name="description" maxlength="300" placeholder="Brief summary of algorithm, objective or key concept...">
+                <p class="field-error" id="e-description" hidden></p>
+              </div>
+              <div class="span-6">
+                <label for="f-file">Upload a source file (optional)</label>
+                <input id="f-file" type="file">
+                <p class="hint" id="file-hint"></p>
+                <p class="field-error" id="e-file" hidden></p>
+              </div>
+              <div class="span-6">
+                <label for="f-code">Source code</label>
+                <textarea id="f-code" name="code" rows="14" spellcheck="false" wrap="off" placeholder="// Paste or type program source code here..." required></textarea>
+                <p class="field-error" id="e-code" hidden></p>
+              </div>
+            </div>
+            <div class="form-actions form-actions-top">
+              <button class="btn btn-primary" id="save-btn" type="submit">Save program</button>
+              <button class="btn" id="cancel-edit" type="button" hidden>Cancel editing</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Existing Programs Card -->
+        <section class="card" aria-labelledby="existing-title">
+          <div class="card-header">
+            <h2 id="existing-title">Existing programs in repository</h2>
+            <div class="form-actions">
+              <button type="button" class="btn btn-small" id="export-json-btn" title="Download all programs as JSON">Export JSON</button>
+              <label class="btn btn-small" style="margin-bottom: 0; cursor: pointer;" title="Import programs from JSON">
+                Import JSON
+                <input type="file" id="import-json-file" accept=".json,application/json" style="display: none;">
+              </label>
+            </div>
+          </div>
+          <div id="existing"></div>
+        </section>
       </section>
     </div>
   </main>
 
+  <!-- Delete Confirmation Modal Dialog -->
   <dialog id="confirm-dialog" aria-labelledby="confirm-title">
     <form method="dialog">
       <h2 id="confirm-title">Delete this program?</h2>
@@ -148,10 +342,10 @@
   </dialog>
 
   <footer class="site-footer">
-    <div>Lab Code Library &bull; Management Console</div>
-    <div><a href="/">&larr; Return to library</a></div>
+    <div><strong>Lab Code Library</strong> &bull; Administrator Console</div>
+    <div><a href="/">&larr; Return to public portal</a></div>
   </footer>
 
-  <script type="module" src="/js/admin.js?v=4"></script>
+  <script type="module" src="/js/admin.js?v=5"></script>
 </body>
 </html>

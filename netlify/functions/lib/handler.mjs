@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { HttpError, json, readJson } from "./http.mjs";
 import { SESSION_TTL_MS, createRateLimiter, isConfigured, passwordMatches, signSession, verifySession } from "./security.mjs";
 import { LIMITS, languageList, validateProgram } from "./validate.mjs";
-import { listPrograms, updateLibrary } from "./store.mjs";
+import { getAnalytics, listPrograms, recordVisit, updateLibrary } from "./store.mjs";
 
 const LOGIN_LIMIT = { max: 10, windowMs: 15 * 60 * 1000 };
 const WRITE_LIMIT = { max: 60, windowMs: 60 * 1000 };
@@ -132,6 +132,84 @@ export function createHandler({
       if (method !== "GET") throw methodNotAllowed("GET");
       const session = requireAdmin(req, ip);
       return json(200, { ok: true, expiresAt: session.expiresAt });
+    }
+
+    if (path === "/api/track") {
+      if (method !== "POST") throw methodNotAllowed("POST");
+      let body = {};
+      try {
+        body = await readJson(req);
+      } catch {
+        /* ignore invalid json for telemetry */
+      }
+      const userAgent = req.headers.get("user-agent") || "";
+      await recordVisit(store, {
+        path: typeof body.path === "string" ? body.path : "/",
+        experimentId: typeof body.experimentId === "string" ? body.experimentId : null,
+        ip,
+        userAgent,
+        now: now(),
+      });
+      return json(200, { ok: true });
+    }
+
+    if (path === "/api/analytics") {
+      if (method !== "GET") throw methodNotAllowed("GET");
+      requireAdmin(req, ip);
+      const programs = await listPrograms(store);
+      const rawAnalytics = await getAnalytics(store);
+
+      const currentTime = now();
+      const todayStr = new Date(currentTime).toISOString().slice(0, 10);
+      const todayVisits = rawAnalytics.daily?.[todayStr]?.visits || 0;
+      const todayUniques = rawAnalytics.daily?.[todayStr]?.uniques?.length || 0;
+
+      // 14-day timeline
+      const timeline = [];
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date(currentTime - i * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+        timeline.push({
+          date: d,
+          visits: rawAnalytics.daily?.[d]?.visits || 0,
+          uniques: rawAnalytics.daily?.[d]?.uniques?.length || 0,
+        });
+      }
+
+      const viewsMap = rawAnalytics.viewsByExperiment || {};
+      const topPrograms = Object.entries(viewsMap)
+        .map(([id, views]) => {
+          const p = programs.find((x) => x.id === id);
+          return {
+            id,
+            title: p ? p.title : id,
+            subject: p ? p.subject : "Other",
+            experimentNumber: p ? p.experimentNumber : null,
+            language: p ? p.language : "unknown",
+            views,
+          };
+        })
+        .sort((a, b) => b.views - a.views)
+        .slice(0, 10);
+
+      // Device counts
+      const deviceCounts = { Desktop: 0, Mobile: 0, Tablet: 0 };
+      for (const v of rawAnalytics.recentVisits || []) {
+        if (deviceCounts[v.device] !== undefined) deviceCounts[v.device]++;
+        else deviceCounts.Desktop++;
+      }
+
+      return json(200, {
+        totalVisits: rawAnalytics.totalVisits || 0,
+        uniqueVisitors: rawAnalytics.uniqueVisitors || 0,
+        todayVisits,
+        todayUniques,
+        timeline,
+        topPrograms,
+        recentVisits: (rawAnalytics.recentVisits || []).slice(0, 25),
+        deviceCounts,
+        totalPrograms: programs.length,
+        totalSubjects: new Set(programs.map((p) => p.subject)).size,
+      });
     }
 
     throw new HttpError(404, "Not found.");
